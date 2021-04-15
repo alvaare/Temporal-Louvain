@@ -2,9 +2,10 @@
 #include "partition.hpp"
 using namespace std;
 
-partition::~partition() {
+partition::~partition() = default;/* {
     cout << "entering destructor of partition\n";
     print();
+    cout << communities.size() << "\n";
     cout << "End printing\n";
     while (!communities.empty()) {
         auto comm = communities.begin();
@@ -13,7 +14,7 @@ partition::~partition() {
         communities.erase(comm);
     }
     community_of_node.clear();
-}
+}*/
 
 void partition::print() {
     for (auto c : communities) {
