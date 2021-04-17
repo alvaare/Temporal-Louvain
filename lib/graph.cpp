@@ -119,6 +119,10 @@ void tempGraph::print() {
     }
 }
 
+unordered_map<int, string>& tempGraph::get_groundtruth() {
+    return groundtruth;
+}
+
 unordered_map<int, unordered_map<int, int>>& weightedGraph::get_edges() {
     return edges;
 }
@@ -208,8 +212,8 @@ vector<string> split(const string& s, char delimiter) {
     return tokens;
 }
 
-void addLine(string line, tempGraph* G) {
-    vector<string> scattered_line = split(line, '\t');
+void addLine(string line, tempGraph* G, char delimiter) {
+    vector<string> scattered_line = split(line, delimiter);
     int time = stoi(scattered_line[0]);
     int id_u = stoi(scattered_line[1]);
     int id_v = stoi(scattered_line[2]);
@@ -221,12 +225,12 @@ void addLine(string line, tempGraph* G) {
     G->add_node(node(id_v, community_v));
 }
 
-tempGraph readTempGraph(string filename) {
+tempGraph readTempGraph(string filename, char delimiter) {
     tempGraph G;
     string line;
     ifstream myfile (filename);
     while (getline(myfile, line)) {
-        addLine(line, &G);
+        addLine(line, &G, delimiter);
     }
     return G;
 }

@@ -4,8 +4,8 @@
 #include "graph.hpp"
 #include "partition.hpp"
 
-partition louvain(weightedGraph&);
+void louvain(weightedGraph&, partition*);
 
-pair<partition, bool> louvain_iteration(weightedGraph& G);
+bool louvain_iteration(weightedGraph&, partition*);
 
 #endif

@@ -74,6 +74,7 @@ class tempGraph : public graph {
         string get_community(int);
         void add_edge(tempEdge);
         void print();
+        unordered_map<int, string>& get_groundtruth();
 };
 
 class weightedGraph : public graph {
@@ -96,7 +97,7 @@ class weightedGraph : public graph {
         unordered_map<int, int>& get_neighbors(int);
 };
 
-tempGraph readTempGraph(string);
+tempGraph readTempGraph(string, char);
 
 weightedGraph from_temp_to_weight(tempGraph&);
 

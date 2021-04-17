@@ -2,19 +2,23 @@
 #include "partition.hpp"
 using namespace std;
 
-partition::~partition() = default;/* {
-    cout << "entering destructor of partition\n";
-    print();
-    cout << communities.size() << "\n";
-    cout << "End printing\n";
+partition::~partition() {
     while (!communities.empty()) {
         auto comm = communities.begin();
-        cout << *comm << "\n";
         delete *comm;
         communities.erase(comm);
     }
     community_of_node.clear();
-}*/
+}
+
+void partition::clear() {
+    while (!communities.empty()) {
+        auto comm = communities.begin();
+        delete *comm;
+        communities.erase(comm);
+    }
+    community_of_node.clear();
+}
 
 void partition::print() {
     for (auto c : communities) {
@@ -41,7 +45,7 @@ void partition::insert_community(community* comm) {
 void partition::erase_community(community* comm) {
     communities.erase(comm);
     for (auto id : *comm) {
-        community_of_node[id] = nullptr;
+        community_of_node.erase(id);
     }
     delete comm;
 }
@@ -62,7 +66,6 @@ void partition::change_community(int id_u, community* comm) {
     comm->insert(id_u);
     community_of_node[id_u] = comm;
     if (old_comm->empty()) {
-        communities.erase(old_comm);
-        delete old_comm;
+        erase_community(old_comm);
     }
 }

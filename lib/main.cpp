@@ -6,6 +6,7 @@
 using namespace std;
 
 const string DATA_PATH = "data/";
+const char DELIMITER = ',';
 
 /*
 //=============================================================================
@@ -23,7 +24,7 @@ bool good_pair(pair<const int, community*>& u, pair<const int, community*>& v, m
         return u.second != v.second;
 }
 
-double rand_index(partition* classes, map<int, string> groundtruth) {
+double rand_index(partition& classes, unordered_map<int, string>& groundtruth) {
     int res = 0;
     int n = groundtruth.size();
     for (auto u : classes->community_of_node) {
@@ -63,15 +64,15 @@ double groundtruth_performance(map<int, string>& groundtruth, weightedGraph* G) 
     return modularity(&real_partition, G);
 }
 
-
 */
+
 //=============================================================================
 
 int main(int argc, char* argv[]) {
     string filename = argv[1];
     string filepath = DATA_PATH + filename + ".csv";
     cout << "Read file...\n";
-    tempGraph temp_G = readTempGraph(filepath);
+    tempGraph temp_G = readTempGraph(filepath, DELIMITER);
     cout << "End read.\n";
 
     cout << "Construct Graph...\n";
@@ -79,18 +80,18 @@ int main(int argc, char* argv[]) {
     cout << "End construct.\n";
 
     cout << "Start Louvain...\n";
-    partition classes = louvain(w_G);
+    partition classes;
+    louvain(w_G, &classes);
     cout << "End Louvain.\n";
-    /*//classes.print();
-
-    for (auto c : classes.communities) {
+    classes.print();
+    cout << classes.get_communities().size() << "\n";
+/*
+    for (auto c : classes.get_communities()) {
             for (auto id : *c) {
-                cout << id << " " << temp_G.groundtruth[id] << "\t";
+                cout << id << " " << temp_G.get_community(id) << "\t";
             }
-            if (!c->empty())
-                cout << "\n";
-        }
-
+            cout << "\n";
+    }
     cout << "Score: " << rand_index(&classes, temp_G.groundtruth) << "\n";
     cout << groundtruth_performance(temp_G.groundtruth, &w_G) << "\n";*/
 }

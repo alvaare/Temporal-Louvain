@@ -25,14 +25,12 @@ double modularity(partition& classes, weightedGraph& G) {
 
 //=============================================================================
 
-partition initialise_partition(weightedGraph& G) {
-    partition classes;
+void initialise_partition(weightedGraph& G, partition* classes) {
     for (auto id_u : G.get_nodes()) {
         community* comm_point = new community;
         comm_point->insert(id_u);
-        classes.insert_community(comm_point);
+        classes->insert_community(comm_point);
     }
-    return classes;
 }
 
 //=============================================================================
@@ -65,7 +63,7 @@ double louvain_inc(int id_u, community* target_comm, partition* classes, weighte
 }
 
 bool scan_node_louvain(partition* classes, weightedGraph& G, int id_u) {
-    community* best_community;
+    community* best_community = nullptr;
     double best_inc = 0;
     for (auto v : G.get_neighbors(id_u)) {
         int id_v = v.first;
@@ -83,24 +81,21 @@ bool scan_node_louvain(partition* classes, weightedGraph& G, int id_u) {
     return false;
 }
 
-pair<partition, bool> louvain_iteration(weightedGraph& G) {
+bool louvain_iteration(weightedGraph& G, partition* classes) {
     bool some_movement = false;
-    partition classes = initialise_partition(G);
+    initialise_partition(G, classes);
     bool vertex_movement;
     do {
         vertex_movement = false;
-        cout << modularity(classes, G) << "\n";
+        cout << modularity(*classes, G) << "\n";
         for (auto id_u : G.get_nodes()) {
-            if (scan_node_louvain(&classes, G, id_u)) {
+            if (scan_node_louvain(classes, G, id_u)) {
                 vertex_movement = true;
                 some_movement = true;
             }
         }
     } while (vertex_movement);
-    classes.print();
-    cout << "Exiting louvain_iteration\n";
-    pair<partition, bool> p = {classes, some_movement};
-    return p;
+    return some_movement;
 }
 
 //=============================================================================
@@ -191,35 +186,37 @@ void update_classes(partition* classes, partition& new_classes, id_dic& dic) {
         collapse_community(classes, comm, dic);
     }
 }
+
 //=============================================================================
 
-partition louvain(weightedGraph& G) {
-    partition classes = initialise_partition(G);
-    partition temp_classes = initialise_partition(G);
+void louvain(weightedGraph& G, partition* classes) {
+    initialise_partition(G, classes);
+    partition temp_classes;
+    initialise_partition(G, &temp_classes);
     weightedGraph temp_G = G;
     id_dic dic;
     bool some_movement;
-    cout << "End initialisation\n";
 
     do {
         cout << "New iteration ";
-        double mod = modularity(classes, G);
+        double mod = modularity(*classes, G);
         cout << mod << "\n";
 
         temp_G = weighted_graph_from_partition(temp_classes, temp_G, &dic);
         cout << "End construct weight from partition\n";
 
         cout << "Begin louvain_iteration\n";
-        tie(temp_classes, some_movement) = louvain_iteration(temp_G);
-        cout << "End louvain_iteration\n";
+        temp_classes.clear();
+        some_movement = louvain_iteration(temp_G, &temp_classes);
         temp_classes.print();
+        cout << "End louvain_iteration\n";
+
         cout << "Begin update_classes\n";
-        update_classes(&classes, temp_classes, dic);
+        //update_classes(&classes, temp_classes, dic);
         cout << "End update_classes\n";
 
         dic.clear();
 
     } while (false/*some_movement*/);
 
-    return classes;
 }
