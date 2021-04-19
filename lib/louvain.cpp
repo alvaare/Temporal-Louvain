@@ -59,7 +59,7 @@ double louvain_inc(int id_u, community* target_comm, partition* classes, weighte
     int dcu = weight_community(*comm_of_u, G);
     int dcvu = relative_weight_node(id_u, *target_comm, G);
     int dcv = weight_community(*target_comm, G);
-    return dcvu - dcuu + double(du) / (2 * m) * (dcu - dcv - du);
+    return (dcvu - dcuu + G.edge_weight(edge(id_u, id_u)) ) / double(m) + double(du) / (2 * m*m) * (dcu - dcv - du);
 }
 
 bool scan_node_louvain(partition* classes, weightedGraph& G, int id_u) {
