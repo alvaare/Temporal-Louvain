@@ -20,8 +20,11 @@ class partition {
         void erase_community(community*);
         void erase_communities(unordered_set<community*>&);
         community* get_community(int);
-        void change_community(int, community* );
+        void insert_pair(int, community*);
+        void change_community(int, community*);
         void clear();
 };
+
+void print_community(community&);
 
 #endif 
