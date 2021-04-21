@@ -8,4 +8,6 @@ void louvain(weightedGraph&, partition*);
 
 bool louvain_iteration(weightedGraph&, partition*);
 
+double modularity(partition&, weightedGraph&);
+
 #endif
