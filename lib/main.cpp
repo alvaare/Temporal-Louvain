@@ -8,28 +8,28 @@ using namespace std;
 const string DATA_PATH = "data/";
 const char DELIMITER = ',';
 
-/*
+
 //=============================================================================
 
-bool from_same_class(int id_u, int id_v, map<int, string>& groundtruth) {
+bool from_same_class(int id_u, int id_v, unordered_map<int, string>& groundtruth) {
     return groundtruth[id_u] == groundtruth[id_v];
 }
 
-bool good_pair(pair<const int, community*>& u, pair<const int, community*>& v, map<int, string>& groundtruth) {
-    int id_u = u.first;
-    int id_v = v.first;
+bool good_pair(int id_u, int id_v, partition& classes, unordered_map<int, string>& groundtruth) {
+    community* u_comm = classes.get_community(id_u);
+    community* v_comm = classes.get_community(id_v);
     if (from_same_class(id_u, id_v, groundtruth))
-        return u.second == v.second;
+        return u_comm == v_comm;
     else   
-        return u.second != v.second;
+        return u_comm != v_comm;
 }
 
 double rand_index(partition& classes, unordered_map<int, string>& groundtruth) {
     int res = 0;
     int n = groundtruth.size();
-    for (auto u : classes->community_of_node) {
-        for (auto v : classes->community_of_node) {
-            if (good_pair(u, v, groundtruth)) {
+    for (auto u : groundtruth) {
+        for (auto v : groundtruth) {
+            if (good_pair(u.first, v.first, classes, groundtruth)) {
                 res++;
             }
         }
@@ -39,7 +39,7 @@ double rand_index(partition& classes, unordered_map<int, string>& groundtruth) {
 
 //=============================================================================
 
-void get_real_partition(map<int, string>& groundtruth, partition* real_partition) {
+void get_real_partition(unordered_map<int, string>& groundtruth, partition* real_partition) {
     unordered_map<string, community*> from_string_to_point;
     for (auto i : groundtruth) {
         int id_u = i.first;
@@ -47,24 +47,21 @@ void get_real_partition(map<int, string>& groundtruth, partition* real_partition
         community* comm_point;
         if (from_string_to_point.find(comm_u)==from_string_to_point.end()) {
             comm_point = new community;
-            real_partition->communities.insert(comm_point);
+            real_partition->insert_community(comm_point);
             from_string_to_point[comm_u] = comm_point;
         }
         else {
             comm_point = from_string_to_point[comm_u];
         }
-        real_partition->community_of_node[id_u] = comm_point;
-        comm_point->insert(id_u);
+        real_partition->insert_pair(id_u, comm_point);
     }
 }
 
-double groundtruth_performance(map<int, string>& groundtruth, weightedGraph* G) {
+double groundtruth_performance(unordered_map<int, string>& groundtruth, weightedGraph& G) {
     partition real_partition;
     get_real_partition(groundtruth, &real_partition);
-    return modularity(&real_partition, G);
+    return modularity(real_partition, G);
 }
-
-*/
 
 //=============================================================================
 
@@ -83,15 +80,16 @@ int main(int argc, char* argv[]) {
     partition classes;
     louvain(w_G, &classes);
     cout << "End Louvain.\n";
-    classes.print();
+    //classes.print();
     cout << classes.get_communities().size() << "\n";
-/*
+
     for (auto c : classes.get_communities()) {
             for (auto id : *c) {
                 cout << id << " " << temp_G.get_community(id) << "\t";
             }
             cout << "\n";
     }
-    cout << "Score: " << rand_index(&classes, temp_G.groundtruth) << "\n";
-    cout << groundtruth_performance(temp_G.groundtruth, &w_G) << "\n";*/
+    cout << "Score: " << rand_index(classes, temp_G.get_groundtruth()) << "\n";
+    cout << groundtruth_performance(temp_G.get_groundtruth(), w_G) << "\n";
+    cout << modularity(classes, w_G);
 }
