@@ -90,7 +90,6 @@ bool louvain_iteration(weightedGraph& G, partition* classes) {
     bool vertex_movement;
     do {
         vertex_movement = false;
-        cout << modularity(*classes, G) << "\n";
         for (auto id_u : G.get_nodes()) {
             if (scan_node_louvain(classes, G, id_u)) {
                 vertex_movement = true;
@@ -156,12 +155,13 @@ community* collapse_community(partition* classes, community* comm, id_dic& dic) 
     return new_comm;
 }
 
-void create_nodes(partition& new_classes, weightedGraph *G, partition* classes, id_dic& old_dic, id_dic* new_dic) {
+void create_nodes(partition& new_classes, weightedGraph *G, partition* classes, id_dic& old_dic, id_dic* dic_classes, id_dic* dic_new_classes) {
     int used_id = 0;
     for (auto comm : new_classes.get_communities()) {
         G->add_node(used_id);
         community* new_comm = collapse_community(classes, comm, old_dic);
-        new_dic->insert_pair(new_comm, used_id);
+        dic_classes->insert_pair(new_comm, used_id);
+        dic_new_classes->insert_pair(comm, used_id);
         used_id++;
     }
 }
@@ -185,32 +185,19 @@ void create_edges(partition& classes, weightedGraph& G, weightedGraph* new_G, id
     }
 }
 
-weightedGraph weighted_graph_from_partition(partition& new_classes, weightedGraph& G, partition* classes, id_dic* dic){
+void update(weightedGraph* G, partition& new_classes, partition* classes, id_dic* dic) {
     weightedGraph new_G;
-    id_dic new_dic;
-    create_nodes(new_classes, &new_G, classes, *dic, &new_dic);
-    create_edges(new_classes, G, &new_G, *dic);
-    *dic = new_dic;
-    return new_G;
+    id_dic dic_classes;
+    id_dic dic_new_classes;
+
+    create_nodes(new_classes, &new_G, classes, *dic, &dic_classes, &dic_new_classes);
+    create_edges(new_classes, *G, &new_G, dic_new_classes);
+
+    *dic = dic_classes;
+    *G = new_G;
 }
 
 //=============================================================================
-
-
-
-void update_classes(partition* classes, partition& new_classes, id_dic& dic) {
-    for (auto comm : new_classes.get_communities()) {
-        collapse_community(classes, comm, dic);
-    }
-}
-
-void update(weightedGraph* G, partition& new_classes, partition* classes, id_dic* dic) {
-
-}
-
-void initialisation(weightedGraph& G, partition* classes, partition* new_classes, weightedGraph* new_G, id_dic* dic) {
-
-}
 
 void create_new_nodes(weightedGraph* temp_G, partition& classes, id_dic* dic) {
     int used_id = 0;
@@ -234,45 +221,11 @@ void louvain(weightedGraph& G, partition* classes) {
     id_dic dic;
     weightedGraph temp_G;
     initialise_temp_G(&temp_G, G, *classes, &dic);
-    //temp_G.print();
-    cout << temp_G.get_nodes().size() << " " << G.get_nodes().size() << "\n";
-/*
+
     while (some_movement) {
-        cout << "New iteration ";
-        double mod = modularity(*classes, G);
-        cout << mod << "\n";
+        temp_classes.clear();
+        some_movement = louvain_iteration(temp_G, &temp_classes);
 
-        //dic = make_dic_&_update_classe(temp_classes, classes)
-
-        cout << "Begin update\n";
         update(&temp_G, temp_classes, classes, &dic);
-        cout << "End update\n";
-
-        temp_classes.clear();
-        some_movement = louvain_iteration(temp_G, &temp_classes);
     }
-
-    do {
-        cout << "New iteration ";
-        double mod = modularity(*classes, G);
-        cout << mod << "\n";
-
-        //temp_G = weighted_graph_from_partition(temp_classes, temp_G, classes, &dic);
-        cout << "End construct weight from partition\n";
-        temp_G.print();
-
-        cout << "Begin louvain_iteration\n";
-        temp_classes.clear();
-        some_movement = louvain_iteration(temp_G, &temp_classes);
-        temp_classes.print();
-        cout << "End louvain_iteration\n";
-
-        cout << "Begin update_classes\n";
-        //update_classes(classes, temp_classes, dic_orig_graph);
-        cout << "End update_classes\n";
-
-        //dic.clear();
-
-    } while (false/*some_movement/);*/
-
 }

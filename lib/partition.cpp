@@ -2,13 +2,15 @@
 #include "partition.hpp"
 using namespace std;
 
-partition::~partition() {
-    while (!communities.empty()) {
-        auto comm = communities.begin();
-        delete *comm;
-        communities.erase(comm);
+void print_community(community& comm) {
+    for (auto id : comm) {
+        cout << id << " ";
     }
-    community_of_node.clear();
+    cout << "\n";
+}
+
+partition::~partition() {
+    clear();
 }
 
 void partition::clear() {
@@ -22,12 +24,7 @@ void partition::clear() {
 
 void partition::print() {
     for (auto c : communities) {
-        for (auto id : *c) {
-            cout << id << " ";
-        }
-        if (!c->empty()) {
-            cout << "\n";
-        }
+        print_community(*c);
     }
 }
 
@@ -58,6 +55,11 @@ void partition::erase_communities(unordered_set<community*>& comm_set) {
 
 community* partition::get_community(int id) {
     return community_of_node[id];
+}
+
+void partition::insert_pair(int id, community* comm) {
+    community_of_node[id] = comm;
+    comm->insert(id);
 }
 
 void partition::change_community(int id_u, community* comm) {

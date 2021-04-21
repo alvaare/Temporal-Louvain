@@ -90,6 +90,6 @@ int main(int argc, char* argv[]) {
             cout << "\n";
     }
     cout << "Score: " << rand_index(classes, temp_G.get_groundtruth()) << "\n";
-    cout << groundtruth_performance(temp_G.get_groundtruth(), w_G) << "\n";
-    cout << modularity(classes, w_G);
+    cout << "Groundtruth modularity: " << groundtruth_performance(temp_G.get_groundtruth(), w_G) << "\n";
+    cout << "Solution's modularity: " << modularity(classes, w_G) << "\n";
 }
