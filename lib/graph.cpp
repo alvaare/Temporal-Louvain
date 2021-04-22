@@ -146,6 +146,11 @@ void weightedGraph::clear() {
     nodes.clear();
     edges.clear();
 }
+
+void weightedGraph::clear_edges() {
+    total_weight = 0;
+    edges.clear();
+}
                     
 int weightedGraph::edge_weight(edge e) {
     int id_u = e.get_start();

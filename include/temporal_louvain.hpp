@@ -15,6 +15,7 @@ class temporal_partition : public partition {
         int get_duration();
         void set_begin(int);
         void set_end(int);
+        void print();
 };
 
 class history {
@@ -24,6 +25,7 @@ class history {
         ~history();
         vector<temporal_partition*>& get_content();
         void insert_partition(temporal_partition*);
+        void print();
 };
 
 void temporal_louvain(history*, tempGraph&);

@@ -3,6 +3,7 @@
 #include "graph.hpp"
 #include "partition.hpp"
 #include "louvain.hpp"
+#include "temporal_louvain.hpp"
 using namespace std;
 
 const string DATA_PATH = "data/";
@@ -65,13 +66,7 @@ double groundtruth_performance(unordered_map<int, string>& groundtruth, weighted
 
 //=============================================================================
 
-int main(int argc, char* argv[]) {
-    string filename = argv[1];
-    string filepath = DATA_PATH + filename + ".csv";
-    cout << "Read file...\n";
-    tempGraph temp_G = readTempGraph(filepath, DELIMITER);
-    cout << "End read.\n";
-
+void test_louvain(tempGraph& temp_G) {
     cout << "Construct Graph...\n";
     weightedGraph w_G = from_temp_to_weight(temp_G);
     cout << "End construct.\n";
@@ -92,4 +87,23 @@ int main(int argc, char* argv[]) {
     cout << "Score: " << rand_index(classes, temp_G.get_groundtruth()) << "\n";
     cout << "Groundtruth modularity: " << groundtruth_performance(temp_G.get_groundtruth(), w_G) << "\n";
     cout << "Solution's modularity: " << modularity(classes, w_G) << "\n";
+}
+
+void test_temp_louvain(tempGraph& temp_G) {
+    history H;
+    temporal_louvain(&H, temp_G);
+    H.print();
+}
+
+
+int main(int argc, char* argv[]) {
+    string filename = argv[1];
+    string filepath = DATA_PATH + filename + ".csv";
+    cout << "Read file...\n";
+    tempGraph temp_G = readTempGraph(filepath, DELIMITER);
+    cout << "End read.\n";
+
+    cout << "Begin temporal louvain\n";
+    test_temp_louvain(temp_G);
+    cout << "End temporal louvain\n";
 }

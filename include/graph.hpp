@@ -88,6 +88,7 @@ class weightedGraph : public graph {
         int get_weight();
         void print();
         void clear();
+        void clear_edges();
         int edge_weight(edge);
         bool edge_is_present(edge);
         void add_edge(weightEdge);

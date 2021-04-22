@@ -10,4 +10,6 @@ bool louvain_iteration(weightedGraph&, partition*);
 
 double modularity(partition&, weightedGraph&);
 
+int louvain_inc(int, community*, partition*, weightedGraph&);
+
 #endif
