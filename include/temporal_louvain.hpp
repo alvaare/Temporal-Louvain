@@ -7,8 +7,8 @@
 
 class temporal_partition : public partition {
     protected:
-        int begin;
-        int end;
+        int begin = 0;
+        int end = 0;
     public:
         int get_begin();
         int get_end();
@@ -26,6 +26,7 @@ class history {
         vector<temporal_partition*>& get_content();
         void insert_partition(temporal_partition*);
         void print();
+        int get_size();
 };
 
 void temporal_louvain(history*, tempGraph&);

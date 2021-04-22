@@ -71,3 +71,20 @@ void partition::change_community(int id_u, community* comm) {
         erase_community(old_comm);
     }
 }
+
+void partition::merge_communities(community* c1, community* c2) {
+    community* new_comm = new community;
+    for (int id : *c1) {
+        new_comm->insert(id);
+        community_of_node[id] = new_comm;
+    }
+    for (int id : *c2) {
+        new_comm->insert(id);
+        community_of_node[id] = new_comm;
+    }
+    communities.insert(new_comm);
+    communities.erase(c1);
+    communities.erase(c2);
+    delete c1;
+    delete c2;
+}

@@ -145,11 +145,13 @@ void weightedGraph::clear() {
     total_weight = 0;
     nodes.clear();
     edges.clear();
+    weight_of_node.clear();
 }
 
 void weightedGraph::clear_edges() {
     total_weight = 0;
     edges.clear();
+    weight_of_node.clear();
 }
                     
 int weightedGraph::edge_weight(edge e) {

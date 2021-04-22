@@ -38,8 +38,12 @@ void history::insert_partition(temporal_partition* part) {
 void history::print() {
     cout << "Number of stages: " << content.size() << "\n";
     for (auto part : content) {
-        //part->print();
+        part->print();
     }
+}
+
+int history::get_size() {
+    return content.size();
 }
 
 history::~history() {
@@ -65,6 +69,22 @@ void initialise_weighted_graph(weightedGraph* w_G, tempGraph& G) {
     }
 }
 
+int inter_community_connexion(community& c1, community& c2, weightedGraph& G) {
+    int res = 0;
+    for (int id : c1) {
+        res += relative_weight_node(id, c2, G);
+    }
+    return res;
+}
+
+int merge_inc(community& c1, community& c2, weightedGraph& G) {
+    int W1 = weight_community(c1, G);
+    int W2 = weight_community(c2, G);
+    int L12 = inter_community_connexion(c1, c2, G);
+    int m = G.get_weight();
+    return 2 * m * L12 - W1 * W2;
+}
+
 bool try_edge_is_coherent(tempEdge e, weightedGraph& G, temporal_partition* part) {
     int id_u = e.get_start();
     int id_v = e.get_end();
@@ -76,9 +96,9 @@ bool try_edge_is_coherent(tempEdge e, weightedGraph& G, temporal_partition* part
 
     int inc_u_to_v = louvain_inc(id_u, comm_of_v, part, G);
     int inc_v_to_u = louvain_inc(id_v, comm_of_u, part, G);
-    cout << inc_u_to_v << " " << inc_v_to_u << "\n";
+    int inc_merge = merge_inc(*comm_of_u, *comm_of_v, G);
 
-    if (inc_u_to_v > inc_v_to_u) {
+    if (inc_u_to_v >= inc_v_to_u && inc_u_to_v >= inc_merge) {
         if (inc_u_to_v > 0) {
             part->change_community(id_u, comm_of_v);
             return true;
@@ -87,14 +107,22 @@ bool try_edge_is_coherent(tempEdge e, weightedGraph& G, temporal_partition* part
             return true;
         }
     }
-    else if (inc_v_to_u > 0) {
-        part->change_community(id_v, comm_of_u);
+    else if (inc_v_to_u >= inc_merge) {
+        if (inc_v_to_u > 0) {
+            part->change_community(id_v, comm_of_u);
+            return true;
+        }
+        else if (inc_u_to_v == 0) {
+            return true;
+        }
+    }
+    else if (inc_merge > 0) {
+        part->merge_communities(comm_of_u, comm_of_v);
         return true;
     }
-    else if (inc_v_to_u == 0) {
+    else if (inc_merge >=  0) {
         return true;
     }
-    
     return false;
 }
 
@@ -119,7 +147,7 @@ void temporal_louvain(history* H, tempGraph& G) {
             present_part = new temporal_partition;
             initialise_temp_partition(G, present_part, e.get_time());
             w_G.clear_edges();
-            w_G.increase_weight(w_e);
         }
     }
+    H->insert_partition(present_part);
 }

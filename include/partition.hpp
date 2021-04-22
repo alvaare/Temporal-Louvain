@@ -23,6 +23,7 @@ class partition {
         void insert_pair(int, community*);
         void change_community(int, community*);
         void clear();
+        void merge_communities(community*, community*);
 };
 
 void print_community(community&);
