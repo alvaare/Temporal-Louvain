@@ -16,4 +16,6 @@ int weight_community(community&, weightedGraph&);
 
 int relative_weight_node(int, community&, weightedGraph&);
 
+bool scan_node_louvain(partition*, weightedGraph&, int);
+
 #endif
