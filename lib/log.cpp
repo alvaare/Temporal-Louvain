@@ -14,10 +14,8 @@ void get_logfile() {
 }
 
 void write_log(string s) {
-    get_logfile();
     string filename = LOGFOLDER + LOGNAME + ".txt";
-    ofstream log;
-    log.open(filename);
+    ofstream log (filename, ios::ate | ios::app);
     log << s;
     log.close();
 }

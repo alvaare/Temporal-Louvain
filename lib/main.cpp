@@ -4,6 +4,8 @@
 #include "partition.hpp"
 #include "louvain.hpp"
 #include "temporal_louvain.hpp"
+#include "log.hpp"
+#include "sbm.hpp"
 using namespace std;
 
 const string DATA_PATH = "data/";

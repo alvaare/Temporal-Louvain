@@ -5,5 +5,6 @@
 using namespace std;
 
 void write_log(string);
+void get_logfile();
 
 #endif

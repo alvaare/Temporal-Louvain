@@ -1,6 +1,7 @@
 #include <iostream>
 #include "louvain.hpp"
 #include "temporal_louvain.hpp"
+#include "log.hpp"
 
 int temporal_partition::get_begin() {
     return begin;
