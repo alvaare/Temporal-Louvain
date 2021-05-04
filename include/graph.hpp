@@ -70,7 +70,8 @@ class tempGraph : public graph {
     
     public:
         list<tempEdge>& get_edges();
-        void add_node(node);        
+        void add_node(node);
+        void change_community(int, string);        
         string get_community(int);
         void add_edge(tempEdge);
         void print();
@@ -93,6 +94,7 @@ class weightedGraph : public graph {
         bool edge_is_present(edge);
         void add_edge(weightEdge);
         void increase_weight(weightEdge);
+        void decrease_weight(weightEdge);
         int weight_node(int);
         void add_node(int);
         unordered_map<int, int>& get_neighbors(int);

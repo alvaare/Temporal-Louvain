@@ -100,6 +100,10 @@ void tempGraph::add_node(node u) {
     groundtruth[u.get_id()] = u.get_community();
 }
 
+void tempGraph::change_community(int id, string c) {
+    groundtruth[id] = c;
+}
+
 void tempGraph::add_edge(tempEdge e) {
     edges.push_back(e);
 }
@@ -191,6 +195,22 @@ void weightedGraph::increase_weight(weightEdge e) {
         edges[id_v][id_u] += e.get_weight();
         weight_of_node[id_u] += e.get_weight();
         weight_of_node[id_v] += e.get_weight();
+    }
+}
+
+void weightedGraph::decrease_weight(weightEdge e) {
+    int id_u = e.get_start();
+    int id_v = e.get_end();
+    if (!edge_is_present(edge(id_u, id_v))) {
+        cout << "Trying to decreasing absent edge!\n";
+    }
+    else {
+        int w = e.get_weight();
+        total_weight -= w;
+        edges[id_u][id_v] += w;
+        edges[id_v][id_u] += w;
+        weight_of_node[id_u] += w;
+        weight_of_node[id_v] += w;
     }
 }
 
