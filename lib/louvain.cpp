@@ -3,7 +3,7 @@
 #include "partition.hpp"
 #include "louvain.hpp"
 using namespace std;
-
+/*
 double modularity(partition& classes, weightedGraph& G) {
     double q = 0;
     int m = G.get_weight();
@@ -18,6 +18,24 @@ double modularity(partition& classes, weightedGraph& G) {
                 q += uv_weight;
                 q -= double(du) * dv / (2 * m);
             }
+        }
+    }
+    return q / (2 * m);
+}
+*/
+double modularity(const partition& classes, const weightedGraph& G) {
+    double q = 0;
+    int m = G.get_weight();
+    for (auto c : classes.get_communities()) {
+        for (auto id_u : *c) {
+            int du = G.weight_node(id_u);
+            for (auto id_v : *c) {
+                int dv = G.weight_node(id_v);
+                int uv_weight = G.edge_weight(edge(id_u, id_v));
+                q += uv_weight;
+                q -= double(du) * dv / (2 * m);
+            }
+
         }
     }
     return q / (2 * m);
