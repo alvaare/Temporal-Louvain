@@ -117,6 +117,14 @@ bool try_edge_is_coherent_simple(tempEdge e, const weightedGraph& G, partition& 
     }
     return false;
 }
+//=============================================================================
+
+void store_performance(const partition& present_part, const weightedGraph& w_G, const tempGraph& G) {
+    double mod = modularity(present_part, w_G);
+    double mod_orig = groundtruth_performance(G.get_groundtruth(), w_G);
+    double rand_score = rand_index(present_part, G.get_groundtruth());
+    write_log(to_string(mod)+ "\t" + to_string(mod_orig) + "\t" + to_string(rand_score) + "\n");
+}
 
 //=============================================================================
 
@@ -188,8 +196,7 @@ void temporal_louvain(history& H, const tempGraph& G) {
             initialise_temp_partition(G, present_part, e.get_time());
             w_G.clear_edges();
         }*/ 
-        double mod = modularity(*present_part, w_G);
-        write_log(to_string(mod)+"\n");
+        store_performance(*present_part, w_G, G);
         cout << double(i)*100/total << "\n";
         i++;
     }

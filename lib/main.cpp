@@ -6,76 +6,20 @@
 #include "temporal_louvain.hpp"
 #include "log.hpp"
 #include "sbm.hpp"
+#include "performance.hpp"
 using namespace std;
 
 const string DATA_PATH = "data/";
 const char DELIMITER = ',';
 
-
-//=============================================================================
-
-bool from_same_class(int id_u, int id_v, unordered_map<int, string>& groundtruth) {
-    return groundtruth[id_u] == groundtruth[id_v];
-}
-
-bool good_pair(int id_u, int id_v, partition& classes, unordered_map<int, string>& groundtruth) {
-    community* u_comm = classes.get_community(id_u);
-    community* v_comm = classes.get_community(id_v);
-    if (from_same_class(id_u, id_v, groundtruth))
-        return u_comm == v_comm;
-    else   
-        return u_comm != v_comm;
-}
-
-double rand_index(partition& classes, unordered_map<int, string>& groundtruth) {
-    int res = 0;
-    int n = groundtruth.size();
-    for (auto u : groundtruth) {
-        for (auto v : groundtruth) {
-            if (good_pair(u.first, v.first, classes, groundtruth)) {
-                res++;
-            }
-        }
-    }
-    return double(res)/(n*n);
-}
-
-//=============================================================================
-
-void get_real_partition(unordered_map<int, string>& groundtruth, partition* real_partition) {
-    unordered_map<string, community*> from_string_to_point;
-    for (auto i : groundtruth) {
-        int id_u = i.first;
-        string comm_u = i.second;
-        community* comm_point;
-        if (from_string_to_point.find(comm_u)==from_string_to_point.end()) {
-            comm_point = new community;
-            real_partition->insert_community(comm_point);
-            from_string_to_point[comm_u] = comm_point;
-        }
-        else {
-            comm_point = from_string_to_point[comm_u];
-        }
-        real_partition->insert_pair(id_u, comm_point);
-    }
-}
-
-double groundtruth_performance(unordered_map<int, string>& groundtruth, weightedGraph& G) {
-    partition real_partition;
-    get_real_partition(groundtruth, &real_partition);
-    return modularity(real_partition, G);
-}
-
-//=============================================================================
-
-void test_louvain(tempGraph& temp_G) {
+void test_louvain(const tempGraph& temp_G) {
     cout << "Construct Graph...\n";
     weightedGraph w_G = from_temp_to_weight(temp_G);
     cout << "End construct.\n";
 
     cout << "Start Louvain...\n";
     partition classes;
-    louvain(w_G, &classes);
+    louvain(w_G, classes);
     cout << "End Louvain.\n";
     //classes.print();
     cout << classes.get_communities().size() << "\n";
@@ -91,10 +35,10 @@ void test_louvain(tempGraph& temp_G) {
     cout << "Solution's modularity: " << modularity(classes, w_G) << "\n";
 }
 
-void test_temp_louvain(tempGraph& temp_G) {
+void test_temp_louvain(const tempGraph& temp_G) {
     history H;
-    temporal_louvain(&H, temp_G);
-    H.print();
+    temporal_louvain(H, temp_G);
+    //H.print();
 }
 
 
@@ -105,7 +49,13 @@ int main(int argc, char* argv[]) {
     tempGraph temp_G = readTempGraph(filepath, DELIMITER);
     cout << "End read.\n";
 
-    cout << "Begin temporal louvain\n";
-    test_temp_louvain(temp_G);
-    cout << "End temporal louvain\n";
+    get_logfile();
+
+    //tempGraph G;
+    //tsbm(&G, 2, 100, 10000, 0.6, 0.1);
+    history H;
+    temporal_louvain_window(H, temp_G);
+
+    //test_louvain(temp_G);
+    
 }
