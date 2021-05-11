@@ -31,5 +31,6 @@ class history {
 
 void temporal_louvain(history&, const tempGraph&);
 
+void temporal_louvain_window(history&, const tempGraph&);
 
 #endif

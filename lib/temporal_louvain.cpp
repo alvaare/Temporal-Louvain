@@ -212,9 +212,12 @@ void temporal_louvain(history& H, const tempGraph& G) {
 
 //=============================================================================
 
-const int WIND_CONST = 40;
+const int WIND_CONST = 5;
 
-void initialize_louvain_window(partition* part, weightedGraph* G, tempGraph& t_G) {
+void initialize_louvain_window(partition& part, weightedGraph& G, const tempGraph& t_G) {
+    for (auto id : t_G.get_nodes()) {
+        G.add_node(id);
+    }
     int n = t_G.size();
     int wind_size = n * WIND_CONST;
     int i = 0;
@@ -223,21 +226,38 @@ void initialize_louvain_window(partition* part, weightedGraph* G, tempGraph& t_G
             break;
         }
         weightEdge w_e(e.get_start(), e.get_end(), 1);
-        G->increase_weight(w_e);
+        G.add_edge(w_e);
         i++;
     }
-    louvain(*G, part);
+    louvain(G, part);
 }
 
-void window_iteration(weightedGraph& G, partition* part, weightEdge old_e, weightEdge new_e) {
-    
+void window_update_old(weightEdge old_e, weightedGraph& G, partition& part) {
+    int id_u = old_e.get_start();
+    int id_v = old_e.get_end();
+    community* u_comm = part.get_community(id_u);
+    community* v_comm = part.get_community(id_v);
+
+    if (u_comm != v_comm) {
+        return;
+    }
+
+    scan_node_louvain(part, G, id_u);
+    scan_node_louvain(part, G, id_v);
 }
 
-void temporal_louvain_window(tempGraph& G) {
+void window_iteration(weightedGraph& G, partition& part, weightEdge old_e, weightEdge new_e) {
+    tempEdge new_t_e(new_e.get_start(), new_e.get_end(), 0);
+    try_edge_is_coherent_simple(new_t_e, G, part);
+    window_update_old(old_e, G, part);
+}
+
+void temporal_louvain_window(history& H, const tempGraph& G) {
     weightedGraph w_G;
-    partition* present_part = new partition;
+    temporal_partition* present_part = new temporal_partition;
+    H.insert_partition(present_part);
     cout << "Begin initialisation\n";
-    initialize_louvain_window(present_part, &w_G, G);
+    initialize_louvain_window(*present_part, w_G, G);
     cout << "End initialisation\n";
     int n = G.size();
     int wind_size = n * WIND_CONST;
@@ -248,12 +268,11 @@ void temporal_louvain_window(tempGraph& G) {
     auto old_e = G.get_edges().begin();
     while (new_e != G.get_edges().end()) {
         weightEdge new_w_e(new_e->get_start(), new_e->get_end(), 1);
-        w_G.increase_weight(new_w_e);
+        w_G.add_edge(new_w_e);
         weightEdge old_w_e(old_e->get_start(), old_e->get_end(), 1);
         w_G.decrease_weight(old_w_e);
-        window_iteration(w_G, present_part, old_w_e, new_w_e);
-        double mod = modularity(*present_part, w_G);
-        write_log(to_string(mod)+"\n");
+        window_iteration(w_G, *present_part, old_w_e, new_w_e);
+        store_performance(*present_part, w_G, G);
         cout << double(i)*100/total << "\n";
         i++;
         new_e++;
