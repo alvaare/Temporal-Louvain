@@ -13,9 +13,9 @@ class node {
 
     public:
         node(int, string);
-        int get_id();
-        string get_community();
-        void print();
+        int get_id() const;
+        string get_community() const;
+        void print() const;
 };
 
 class edge {
@@ -26,9 +26,9 @@ class edge {
     public:
         edge(int, int);
         edge();
-        int get_start();
-        int get_end();
-        void print();
+        int get_start() const;
+        int get_end() const;
+        void print() const;
 };
 
 class tempEdge : public edge {
@@ -37,8 +37,8 @@ class tempEdge : public edge {
     
     public:
         tempEdge(int, int, int);
-        int get_time();
-        void print();
+        int get_time() const;
+        void print() const;
 };
 
 class weightEdge : public edge {
@@ -47,8 +47,8 @@ class weightEdge : public edge {
     
     public:
         weightEdge(int, int, int);
-        int get_weight();
-        void print();
+        int get_weight() const;
+        void print() const;
 };
 
 class graph {
@@ -56,26 +56,28 @@ class graph {
         unordered_set<int> nodes;
     
     public:
-        unordered_set<int>& get_nodes();
+        const unordered_set<int>& get_nodes() const;
         void add_node(int);
-        bool node_is_present(int);
-        void print();
-        int size();
+        bool node_is_present(int) const;
+        void print() const;
+        int size() const;
 };
+
+typedef unordered_map<int, string> groundtruth_type;
 
 class tempGraph : public graph {
     protected: 
         list<tempEdge> edges;
-        unordered_map<int, string> groundtruth;
+        groundtruth_type groundtruth;
     
     public:
-        list<tempEdge>& get_edges();
+        const list<tempEdge>& get_edges() const;
         void add_node(node);
         void change_community(int, string);        
-        string get_community(int);
+        string get_community(int) const;
         void add_edge(tempEdge);
-        void print();
-        unordered_map<int, string>& get_groundtruth();
+        void print() const;
+        const groundtruth_type& get_groundtruth() const;
 };
 
 class weightedGraph : public graph {
@@ -85,23 +87,23 @@ class weightedGraph : public graph {
         unordered_map<int, int> weight_of_node; 
     
     public:
-        unordered_map<int, unordered_map<int, int>>& get_edges();
-        int get_weight();
-        void print();
+        const unordered_map<int, unordered_map<int, int>>& get_edges() const;
+        int get_weight() const;
+        void print() const;
         void clear();
         void clear_edges();
-        int edge_weight(edge);
-        bool edge_is_present(edge);
+        int edge_weight(edge) const;
+        bool edge_is_present(edge) const;
         void add_edge(weightEdge);
         void increase_weight(weightEdge);
         void decrease_weight(weightEdge);
-        int weight_node(int);
+        int weight_node(int) const;
         void add_node(int);
-        unordered_map<int, int>& get_neighbors(int);
+        const unordered_map<int, int>& get_neighbors(int) const;
 };
 
 tempGraph readTempGraph(string, char);
 
-weightedGraph from_temp_to_weight(tempGraph&);
+weightedGraph from_temp_to_weight(const tempGraph&);
 
 #endif

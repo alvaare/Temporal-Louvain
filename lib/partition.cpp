@@ -22,13 +22,13 @@ void partition::clear() {
     community_of_node.clear();
 }
 
-void partition::print() {
+void partition::print() const {
     for (auto c : communities) {
         print_community(*c);
     }
 }
 
-unordered_set<community*>& partition::get_communities() {
+const unordered_set<community*>& partition::get_communities() const {
     return communities;
 }
 
@@ -53,8 +53,8 @@ void partition::erase_communities(unordered_set<community*>& comm_set) {
     }
 }
 
-community* partition::get_community(int id) {
-    return community_of_node[id];
+community* partition::get_community(int id) const {
+    return community_of_node.at(id);
 }
 
 void partition::insert_pair(int id, community* comm) {

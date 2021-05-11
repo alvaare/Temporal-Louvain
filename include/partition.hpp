@@ -14,12 +14,12 @@ class partition {
     
     public:
         ~partition();
-        unordered_set<community*>& get_communities();
-        void print();
+        const unordered_set<community*>& get_communities() const;
+        void print() const;
         void insert_community(community*);
         void erase_community(community*);
         void erase_communities(unordered_set<community*>&);
-        community* get_community(int);
+        community* get_community(int) const;
         void insert_pair(int, community*);
         void change_community(int, community*);
         void clear();

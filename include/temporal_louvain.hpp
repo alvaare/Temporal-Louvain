@@ -10,12 +10,12 @@ class temporal_partition : public partition {
         int begin = 0;
         int end = 0;
     public:
-        int get_begin();
-        int get_end();
-        int get_duration();
+        int get_begin() const;
+        int get_end() const;
+        int get_duration() const;
         void set_begin(int);
         void set_end(int);
-        void print();
+        void print() const;
 };
 
 class history {
@@ -23,12 +23,13 @@ class history {
         vector<temporal_partition*> content;
     public:
         ~history();
-        vector<temporal_partition*>& get_content();
+        const vector<temporal_partition*>& get_content() const;
         void insert_partition(temporal_partition*);
-        void print();
-        int get_size();
+        void print() const;
+        int get_size() const;
 };
 
-void temporal_louvain(history*, tempGraph&);
+void temporal_louvain(history&, const tempGraph&);
+
 
 #endif

@@ -9,15 +9,15 @@ node::node(int id, string community) {
     this->community = community;
 }
 
-int node::get_id() {
+int node::get_id() const {
     return id; 
 }
 
-string node::get_community() {
+string node::get_community() const {
     return community;
 }
 
-void node::print() {
+void node::print() const {
     cout << id << " " << community << "\n";
 }
 
@@ -28,15 +28,15 @@ edge::edge(int id_u, int id_v) {
 
 edge::edge() = default;
 
-int edge::get_start() {
+int edge::get_start() const {
     return id_u;
 }
 
-int edge::get_end() {
+int edge::get_end() const {
     return id_v;
 }
 
-void edge::print() {
+void edge::print() const {
     cout << id_u << " " << id_v << "\n";
 }
 
@@ -46,11 +46,11 @@ tempEdge::tempEdge(int id_u, int id_v, int time) {
     this->time = time;
 } 
 
-int tempEdge::get_time() {
+int tempEdge::get_time() const {
     return time;
 }
 
-void tempEdge::print() {
+void tempEdge::print() const {
     cout << time << " " << id_u << " " << id_v << "\n";
 }
 
@@ -60,15 +60,15 @@ weightEdge::weightEdge(int id_u, int id_v, int weight) {
     this->weight = weight;
 }
 
-int weightEdge::get_weight() {
+int weightEdge::get_weight() const {
     return weight;
 }
 
-void weightEdge::print() {
+void weightEdge::print() const {
     cout << id_u << " " << id_v << " " << weight << "\n";
 }
 
-unordered_set<int>& graph::get_nodes() {
+const unordered_set<int>& graph::get_nodes() const {
     return nodes;
 }
 
@@ -76,22 +76,22 @@ void graph::add_node(int id) {
     nodes.insert(id);
 }
 
-bool graph::node_is_present(int id) {
+bool graph::node_is_present(int id) const {
     return nodes.find(id) != nodes.end();
 }
 
-int graph::size() {
+int graph::size() const {
     return nodes.size();
 }
 
-void graph::print() {
+void graph::print() const {
     for (auto i : nodes) {
         cout << i << " ";
     }
     cout << "\n";
 }
 
-list<tempEdge>& tempGraph::get_edges() {
+const list<tempEdge>& tempGraph::get_edges() const {
     return edges;
 }
 
@@ -108,11 +108,11 @@ void tempGraph::add_edge(tempEdge e) {
     edges.push_back(e);
 }
 
-string tempGraph::get_community(int id) {
-    return groundtruth[id];
+string tempGraph::get_community(int id) const {
+    return groundtruth.at(id);
 }
 
-void tempGraph::print() {
+void tempGraph::print() const {
     cout << "Edges: \n";
     for (auto e : edges) {
         e.print();
@@ -123,19 +123,19 @@ void tempGraph::print() {
     }
 }
 
-unordered_map<int, string>& tempGraph::get_groundtruth() {
+const groundtruth_type& tempGraph::get_groundtruth() const {
     return groundtruth;
 }
 
-unordered_map<int, unordered_map<int, int>>& weightedGraph::get_edges() {
+const unordered_map<int, unordered_map<int, int>>& weightedGraph::get_edges() const {
     return edges;
 }
 
-int weightedGraph::get_weight() {
+int weightedGraph::get_weight() const {
    return total_weight;
 }
 
-void weightedGraph::print() {
+void weightedGraph::print() const {
     cout << "Total weight: " << total_weight << "\n";
     for (auto e : edges) {
         unordered_map<int, int> neighbors = e.second;
@@ -158,17 +158,17 @@ void weightedGraph::clear_edges() {
     weight_of_node.clear();
 }
                     
-int weightedGraph::edge_weight(edge e) {
+int weightedGraph::edge_weight(edge e) const {
     int id_u = e.get_start();
     int id_v = e.get_end();
-    if (edges[id_u].find(id_v)!=edges[id_u].end()) {
-        return edges[id_v][id_u];
+    if (edges.at(id_u).find(id_v)!=edges.at(id_u).end()) {
+        return edges.at(id_v).at(id_u);
     }
     return 0;
 }
 
-bool weightedGraph::edge_is_present(edge e) {
-    return edges[e.get_start()].find(e.get_end())!=edges[e.get_end()].end();
+bool weightedGraph::edge_is_present(edge e) const {
+    return edges.at(e.get_start()).find(e.get_end())!=edges.at(e.get_end()).end();
 }
 
 void weightedGraph::add_edge(weightEdge e) {
@@ -177,8 +177,8 @@ void weightedGraph::add_edge(weightEdge e) {
     total_weight += e.get_weight();
     add_node(id_u);
     add_node(id_v);
-    edges[id_u].insert({id_v, e.get_weight()});
-    edges[id_v].insert({id_u, e.get_weight()});
+    edges[id_u][id_v] += e.get_weight();
+    edges[id_v][id_u] += e.get_weight();
     weight_of_node[id_u] += e.get_weight();
     weight_of_node[id_v] += e.get_weight();
 }
@@ -214,17 +214,18 @@ void weightedGraph::decrease_weight(weightEdge e) {
     }
 }
 
-int weightedGraph::weight_node(int id) {
-   return weight_of_node[id];
+int weightedGraph::weight_node(int id) const {
+   return weight_of_node.at(id);
 }
 
 void weightedGraph::add_node(int id) {
    graph::add_node(id);
    weight_of_node.insert({id, 0});
+    edges.insert({id, {}});
 }
 
-unordered_map<int, int>& weightedGraph::get_neighbors(int id) {
-   return edges[id];
+const unordered_map<int, int>& weightedGraph::get_neighbors(int id) const {
+    return edges.at(id);
 }
 
 //=============================================================================
@@ -264,11 +265,11 @@ tempGraph readTempGraph(string filename, char delimiter) {
 
 //=============================================================================
 
-weightedGraph from_temp_to_weight(tempGraph& temp_G) {
+weightedGraph from_temp_to_weight(const tempGraph& temp_G) {
     weightedGraph w_G;
     for (auto edge : temp_G.get_edges()) {
         weightEdge w_e(edge.get_start(), edge.get_end(), 1);
-        w_G.increase_weight(w_e);
+        w_G.add_edge(w_e);
     }
     return w_G;
 }
