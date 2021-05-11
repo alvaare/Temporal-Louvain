@@ -207,10 +207,10 @@ void weightedGraph::decrease_weight(weightEdge e) {
     else {
         int w = e.get_weight();
         total_weight -= w;
-        edges[id_u][id_v] += w;
-        edges[id_v][id_u] += w;
-        weight_of_node[id_u] += w;
-        weight_of_node[id_v] += w;
+        edges[id_u][id_v] -= w;
+        edges[id_v][id_u] -= w;
+        weight_of_node[id_u] -= w;
+        weight_of_node[id_v] -= w;
     }
 }
 
@@ -219,8 +219,8 @@ int weightedGraph::weight_node(int id) const {
 }
 
 void weightedGraph::add_node(int id) {
-   graph::add_node(id);
-   weight_of_node.insert({id, 0});
+    graph::add_node(id);
+    weight_of_node.insert({id, 0});
     edges.insert({id, {}});
 }
 
