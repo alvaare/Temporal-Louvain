@@ -19,3 +19,12 @@ void write_log(string s) {
     log << s;
     log.close();
 }
+
+void write_log(vector<string> v) {
+    string filename = LOGFOLDER + LOGNAME + ".txt";
+    ofstream log (filename, ios::ate | ios::app);
+    for (auto s : v) {
+        log << s << "\n";
+    }
+    log.close();
+}
