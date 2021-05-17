@@ -60,6 +60,12 @@ weightEdge::weightEdge(int id_u, int id_v, int weight) {
     this->weight = weight;
 }
 
+weightEdge::weightEdge(tempEdge e) {
+    this->id_u = e.get_start();
+    this->id_v = e.get_end();
+    this->weight = 1;
+}
+
 int weightEdge::get_weight() const {
     return weight;
 }
@@ -91,7 +97,7 @@ void graph::print() const {
     cout << "\n";
 }
 
-const list<tempEdge>& tempGraph::get_edges() const {
+const vector<tempEdge>& tempGraph::get_edges() const {
     return edges;
 }
 
@@ -106,6 +112,14 @@ void tempGraph::change_community(int id, string c) {
 
 void tempGraph::add_edge(tempEdge e) {
     edges.push_back(e);
+}
+
+int tempGraph::nb_edges() const {
+    return edges.size();
+}
+
+tempEdge tempGraph::get_temp_edge(int i_edge) const {
+    return edges[i_edge];
 }
 
 string tempGraph::get_community(int id) const {
@@ -168,7 +182,7 @@ int weightedGraph::edge_weight(edge e) const {
 }
 
 bool weightedGraph::edge_is_present(edge e) const {
-    return edges.at(e.get_start()).find(e.get_end())!=edges.at(e.get_end()).end();
+    return edges.at(e.get_start()).find(e.get_end())!=edges.at(e.get_start()).end();
 }
 
 void weightedGraph::add_edge(weightEdge e) {
@@ -202,7 +216,7 @@ void weightedGraph::decrease_weight(weightEdge e) {
     int id_u = e.get_start();
     int id_v = e.get_end();
     if (!edge_is_present(edge(id_u, id_v))) {
-        cout << "Trying to decreasing absent edge!\n";
+        //cout << "Trying to decreasing absent edge!\n";
     }
     else {
         int w = e.get_weight();

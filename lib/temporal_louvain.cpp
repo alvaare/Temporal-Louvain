@@ -1,4 +1,5 @@
 #include <iostream>
+#include <vector>
 #include "louvain.hpp"
 #include "temporal_louvain.hpp"
 #include "log.hpp"
@@ -212,8 +213,6 @@ void temporal_louvain(history& H, const tempGraph& G) {
 
 //=============================================================================
 
-const int WIND_CONST = 5;
-
 void initialize_louvain_window(partition& part, weightedGraph& G, const tempGraph& t_G) {
     for (auto id : t_G.get_nodes()) {
         G.add_node(id);
@@ -245,13 +244,13 @@ void window_update_old(weightEdge old_e, weightedGraph& G, partition& part) {
     scan_node_louvain(part, G, id_u);
     scan_node_louvain(part, G, id_v);
 }
-
+/*
 void window_iteration(weightedGraph& G, partition& part, weightEdge old_e, weightEdge new_e) {
     tempEdge new_t_e(new_e.get_start(), new_e.get_end(), 0);
     try_edge_is_coherent_simple(new_t_e, G, part);
     window_update_old(old_e, G, part);
-}
-
+} */
+/*
 void temporal_louvain_window(history& H, const tempGraph& G) {
     weightedGraph w_G;
     temporal_partition* present_part = new temporal_partition;
@@ -272,7 +271,7 @@ void temporal_louvain_window(history& H, const tempGraph& G) {
         weightEdge old_w_e(old_e->get_start(), old_e->get_end(), 1);
         w_G.decrease_weight(old_w_e);
         window_iteration(w_G, *present_part, old_w_e, new_w_e);
-        store_performance(*present_part, w_G, G);
+        //store_performance(*present_part, w_G, G);
         cout << double(i)*100/total << "\n";
         i++;
         new_e++;
@@ -285,4 +284,228 @@ void temporal_louvain_window(history& H, const tempGraph& G) {
         cout << "\n";
     }
     cout << modularity(*present_part, w_G) << "\n";
+}
+*/
+//=============================================================================
+
+const double CRITICAL_RATIO = 0.9;
+
+void initialise_window(mod_tracker& status, const tempGraph& G, int i_start = 0) {
+    for (auto id : G.get_nodes()) {
+        status.add_node(id);
+    }
+    int i = i_start;
+    for (auto e : G.get_edges()) {
+        weightEdge w_e(e.get_start(), e.get_end(), 1);
+        status.add_edge(w_e);
+        i++;
+        if (i >= i_start+status.wind_size()) {
+            break;
+        }
+    }
+    louvain(status, status);
+    status.fill();
+}
+
+void window_iteration(mod_tracker& status, int i_edge, const tempGraph& G) {
+    tempEdge new_e = G.get_temp_edge(i_edge);
+    tempEdge old_e = G.get_temp_edge(i_edge-status.wind_size());
+    new_e.print();
+    old_e.print();
+    status.insert_edge(new_e);
+    status.erase_edge(old_e);
+    status.try_edge_is_coherent(new_e);
+}
+
+void temporal_louvain_window(history& H, const tempGraph& G) {
+    mod_tracker* status = new mod_tracker;
+    initialise_window(*status, G);
+    double max_mod = status->get_modularity();
+    int i_edge = status->wind_size();
+    int total = G.get_edges().size();
+    vector<string> separators;
+    vector<string> modularity_history;
+    while (i_edge < G.nb_edges()) {
+        window_iteration(*status, i_edge, G);
+        double mod = status->get_modularity();
+        modularity_history.push_back(to_string(mod));
+        if (mod > max_mod) {
+            max_mod = mod;
+        }
+        if (mod < CRITICAL_RATIO * max_mod) {
+            int time = G.get_temp_edge(i_edge).get_time();
+            cout << time << " " << i_edge << "\n";
+            separators.push_back(to_string(time));
+            delete status;
+            
+            status = new mod_tracker;
+            initialise_window(*status, G, i_edge);
+            i_edge += status->wind_size();
+            max_mod = status->get_modularity();
+        }
+        cout << double(i_edge)/total*100 << " " << " " << "\n";
+        i_edge++;
+    }
+    write_log(separators);
+    write_log("\n");
+    write_log(modularity_history); 
+    delete status;
+}
+
+//=============================================================================
+
+int mod_tracker::get_links_sum() const {
+    int r = 0;
+    for (auto c : get_communities()) {
+        for (auto id_u : *c) {
+            for (auto id_v : *c) {
+                r += edge_weight(edge(id_u, id_v));
+            }
+        }
+    }
+    return r;
+}
+
+double mod_tracker::get_modularity() const {
+    int m = weightedGraph::get_weight();
+    //cout << get_links_sum() << " " << links_sum << "\n";
+    /*if (get_links_sum()!=links_sum) {
+        weightedGraph::print();
+        partition::print();
+        exit(0);
+    }*/
+    return 1.0/(2*m)*(links_sum-1.0/(2*m)*weights_squared_sum);
+}
+
+int mod_tracker::get_weight(community* c) const {
+    return community_weight.at(c);
+}
+
+int mod_tracker::get_links(community* c) const {
+    return community_links.at(c);
+}
+
+void mod_tracker::fill() {
+    for (auto c : get_communities()) {
+        int weight = 0;
+        int links = 0;
+        for (auto id_u : *c) {
+            weight += weight_node(id_u);
+            for (auto id_v : *c) {
+                links += edge_weight(edge(id_u, id_v));
+            }
+        }
+        community_links.insert({c, links});
+        community_weight.insert({c, weight});
+        links_sum += links;
+        weights_squared_sum += weight*weight;
+    }
+}
+
+int mod_tracker::wind_size() const {
+    return size() * WIND_CONST;
+}
+
+void mod_tracker::insert_edge(tempEdge e) {
+    add_edge(e);
+    int id_u = e.get_start();
+    int id_v = e.get_end();
+    community* u_comm = get_community(id_u);
+    community* v_comm = get_community(id_v);
+    increase_weight(u_comm);
+    increase_weight(v_comm);
+
+    if (u_comm == v_comm) {
+        increase_links(u_comm, 2);
+    }
+}
+
+void mod_tracker::increase_weight(community* c, int k) { 
+    weights_squared_sum += 2*k*get_weight(c) + k*k;
+    community_weight[c] += k;
+}
+
+void mod_tracker::increase_links(community* c, int k) {
+    links_sum += k;
+    community_links[c] += k;
+}
+/*
+double mod_tracker::mod_inc(community* c_0) {
+    int m = weightedGraph::get_weight();
+    int w_0 = get_weight(c_0);
+    return 1.0/(m+1) - (w_0+1.0)/((m+1)*(m+1)) - links_sum/(2*m*(m+1.0)) + (2+1.0/m)*weights_squared_sum/(4*m*(m+1)*(m+1));
+}
+
+double mod_tracker::mod_inc(community* c_0, community* c_1) {
+    int m = weightedGraph::get_weight();
+    int w_0 = get_weight(c_0);
+    int w_1 = get_weight(c_1);
+    return -(w_0+w_1+1.0)/(2*(m+1)*(m+1)) + (2+1.0/m)*weights_squared_sum/(4*m*(m+1)*(m+1)) - links_sum/(2*m*(m+1.0));
+}
+*/
+double mod_tracker::mod_inc(int id_u, community* c) {
+    int m = weightedGraph::get_weight();
+    community* comm_of_u = get_community(id_u);
+    int dcuu = relative_weight_node(id_u, comm_of_u);
+    int du = weight_node(id_u);
+    int dcu = get_weight(comm_of_u);
+    int dcvu = relative_weight_node(id_u, c);
+    int dcv = get_weight(c);
+    int self_loop_weight = edge_weight(edge(id_u, id_u));
+    return double(dcvu-dcuu+self_loop_weight)/(2*m) + double(du)*(dcu-dcv-du)/(4*m*m);
+}
+
+int mod_tracker::relative_weight_node(int id_u, community* c) {
+    int weight = 0;
+    for (auto id_v : *c) {
+        weight += edge_weight(edge(id_u, id_v));
+    }
+    return weight;
+}
+
+void mod_tracker::erase_edge(tempEdge e) {
+    decrease_weight(e);
+    int id_u = e.get_start();
+    int id_v = e.get_end();
+    community* u_comm = get_community(id_u);
+    community* v_comm = get_community(id_v);
+    increase_weight(u_comm, -1);
+    increase_weight(v_comm, -1);
+
+    if (u_comm == v_comm) {
+        increase_links(u_comm, -2);
+    }
+}
+
+void mod_tracker::try_edge_is_coherent(tempEdge e) {
+    int id_u = e.get_start();
+    int id_v = e.get_end();
+    community* comm_of_u = get_community(id_u);
+    community* comm_of_v = get_community(id_v);
+    if (comm_of_u == comm_of_v) {
+        return;
+    }
+
+    double inc_u_to_v = mod_inc(id_u, comm_of_v);
+    double inc_v_to_u = mod_inc(id_v, comm_of_u);
+
+    if (inc_u_to_v >= inc_v_to_u && inc_u_to_v > 0)  {
+        change_community(id_u, comm_of_v);
+    }
+    if (inc_v_to_u > inc_u_to_v && inc_v_to_u > 0) {
+        change_community(id_v, comm_of_u);
+    }
+}
+
+void mod_tracker::change_community(int id_u, community* c) {
+    //cout << "CHANGE " << id_u << "\n";
+    community* u_comm = get_community(id_u);
+    int d_u_in_u_comm = relative_weight_node(id_u, u_comm);
+    int d_u_in_c = relative_weight_node(id_u, c);
+    int du = weight_node(id_u);
+    increase_links(c, 2 * d_u_in_c);
+    increase_links(u_comm, -2 * d_u_in_u_comm);
+    increase_weight(c, du);
+    increase_weight(u_comm, -du);
+    partition::change_community(id_u, c);
 }

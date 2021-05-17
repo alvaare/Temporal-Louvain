@@ -4,6 +4,7 @@
 #include <unordered_set>
 #include <list>
 #include <unordered_map>
+#include <vector>
 using namespace std;
 
 class node {
@@ -47,6 +48,7 @@ class weightEdge : public edge {
     
     public:
         weightEdge(int, int, int);
+        weightEdge(tempEdge);
         int get_weight() const;
         void print() const;
 };
@@ -67,17 +69,19 @@ typedef unordered_map<int, string> groundtruth_type;
 
 class tempGraph : public graph {
     protected: 
-        list<tempEdge> edges;
+        vector<tempEdge> edges;
         groundtruth_type groundtruth;
     
     public:
-        const list<tempEdge>& get_edges() const;
+        const vector<tempEdge>& get_edges() const;
         void add_node(node);
         void change_community(int, string);        
         string get_community(int) const;
         void add_edge(tempEdge);
         void print() const;
         const groundtruth_type& get_groundtruth() const;
+        int nb_edges() const;
+        tempEdge get_temp_edge(int) const;
 };
 
 class weightedGraph : public graph {
