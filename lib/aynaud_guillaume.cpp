@@ -89,8 +89,8 @@ void aynaud_guillaume(const tempGraph& G) {
         snapshot* s1 = snapshots[best_pair.first];
         snapshot* s2 = snapshots[best_pair.second];
         construct_snapshot_union(snap_union, s1, s2);
-        snapshots.erase(snapshots.begin()+best_pair.first-1);
-        snapshots.erase(snapshots.begin()+best_pair.second-2);
+        snapshots.erase(snapshots.begin()+best_pair.first);
+        snapshots.erase(snapshots.begin()+best_pair.second-1);
         delete s1;
         delete s2;
         snapshots.push_back(snap_union);
