@@ -8,5 +8,6 @@ using namespace std;
 void write_log(string);
 void get_logfile();
 void write_log(vector<string>);
+string find_time(int);
 
 #endif

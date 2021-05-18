@@ -78,9 +78,9 @@ void construct_snapshot_union(snapshot& snap_union, const snapshot& s1, const sn
 
 void store_snapshot(const snapshot& s1) {
     for (auto interval : s1.get_time()) {
-        string s = to_string(interval.first);
+        string s = find_time(interval.first);
         s += '-';
-        s += to_string(interval.second);
+        s += find_time(interval.second);
         s += " ";
         write_log(s);
     }
