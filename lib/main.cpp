@@ -7,6 +7,7 @@
 #include "log.hpp"
 #include "sbm.hpp"
 #include "performance.hpp"
+#include "aynaud_guillaume.hpp"
 using namespace std;
 
 const string DATA_PATH = "data/";
@@ -53,9 +54,10 @@ int main(int argc, char* argv[]) {
 
     //tempGraph G;
     //tsbm(&G, 2, 100, 10000, 0.6, 0.1);
-    history H;
-    temporal_louvain_window(H, temp_G);
+    //history H;
+    //temporal_louvain_window(H, temp_G);
 
     //test_louvain(temp_G);
     
+    aynaud_guillaume(temp_G);
 }

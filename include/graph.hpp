@@ -63,6 +63,7 @@ class graph {
         bool node_is_present(int) const;
         void print() const;
         int size() const;
+        void set_nodes(const unordered_set<int>&);
 };
 
 typedef unordered_map<int, string> groundtruth_type;
@@ -103,11 +104,16 @@ class weightedGraph : public graph {
         void decrease_weight(weightEdge);
         int weight_node(int) const;
         void add_node(int);
+        void set_nodes(const unordered_set<int>&);
         const unordered_map<int, int>& get_neighbors(int) const;
+        void add_edges(const weightedGraph&);
+        void half();
 };
 
 tempGraph readTempGraph(string, char);
 
 weightedGraph from_temp_to_weight(const tempGraph&);
+
+weightedGraph graph_union(const weightedGraph&, const weightedGraph&);
 
 #endif

@@ -97,6 +97,12 @@ void graph::print() const {
     cout << "\n";
 }
 
+void graph::set_nodes(const unordered_set<int>& nodes) {
+    for (auto node : nodes) {
+        this->nodes.insert(node);
+    }
+}
+
 const vector<tempEdge>& tempGraph::get_edges() const {
     return edges;
 }
@@ -238,8 +244,30 @@ void weightedGraph::add_node(int id) {
     edges.insert({id, {}});
 }
 
+void weightedGraph::set_nodes(const unordered_set<int>& nodes) {
+    for (auto node : nodes) {
+        add_node(node);
+    }
+}
+
 const unordered_map<int, int>& weightedGraph::get_neighbors(int id) const {
     return edges.at(id);
+}
+
+void weightedGraph::add_edges(const weightedGraph& G) {
+    for (int id_u : G.get_nodes()) {
+        for (auto uv : G.get_neighbors(id_u)) {
+            add_edge(weightEdge(id_u, uv.first, uv.second));
+        }
+    }
+}
+
+void weightedGraph::half() {
+    for (int id_u : get_nodes()) {
+        for (auto uv : get_neighbors(id_u)) {
+            decrease_weight(weightEdge(id_u, uv.first, uv.second/2));
+        }
+    }
 }
 
 //=============================================================================

@@ -1,4 +1,5 @@
 #include "performance.hpp"
+#include <iostream>
 using namespace std;
 
 void get_real_partition(const groundtruth_type& groundtruth, partition& real_partition) {
@@ -52,4 +53,12 @@ double rand_index(const partition& classes, const groundtruth_type& groundtruth)
         }
     }
     return double(res)/(n*n);
+}
+
+//=============================================================================
+
+double similarity(const snapshot& s1, const snapshot& s2) {
+    double m1 = modularity(s1, s2);
+    double m2 = modularity(s2, s1);
+    return m1+m2;
 }
