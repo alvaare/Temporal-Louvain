@@ -4,6 +4,7 @@
 #include "graph.hpp"
 #include "louvain.hpp"
 #include "performance.hpp"
+#include "log.hpp"
 using namespace std;
 
 void snapshot::insert_interval(interval i) {
@@ -34,16 +35,16 @@ void construct_graphs(const tempGraph& G, vector<snapshot*>& snapshots) {
         w_G->add_edge(e);
         end_date = e.get_time();
     }
-    snapshots.push_back(w_G);
+    //snapshots.push_back(w_G);
 }
 
-void apply_louvain(vector<snapshot*> snapshots) {
+void apply_louvain(const vector<snapshot*>& snapshots) {
     for (auto snap : snapshots) {
         louvain(*snap, *snap);
     }
 }
 
-pair<int, int> get_best_pair_aynaud_guillaume(vector<snapshot*> snapshots) {
+pair<int, int> get_best_pair_aynaud_guillaume(const vector<snapshot*>& snapshots) {
     int n = snapshots.size();
     double max_sim = -1;
     pair<int, int> best_pair = {-1,-1};
@@ -59,20 +60,31 @@ pair<int, int> get_best_pair_aynaud_guillaume(vector<snapshot*> snapshots) {
     return best_pair;
 }
 
-void insert_intervals(snapshot* s_obj, snapshot* s_source) {
-    for (auto interv : s_source->get_time()) {
-        s_obj->insert_interval(interv);
+void insert_intervals(snapshot& s_obj, const snapshot& s_source) {
+    for (auto interv : s_source.get_time()) {
+        s_obj.insert_interval(interv);
     }
 }
 
-void construct_snapshot_union(snapshot* snap_union, snapshot* s1, snapshot* s2) {
-    snap_union->set_nodes(s1->get_nodes());
+void construct_snapshot_union(snapshot& snap_union, const snapshot& s1, const snapshot& s2) {
+    snap_union.set_nodes(s1.get_nodes());
     insert_intervals(snap_union, s1);
     insert_intervals(snap_union, s2);   
-    snap_union->add_edges(*s1);
-    snap_union->add_edges(*s2);
-    snap_union->half();
-    louvain(*snap_union, *snap_union); 
+    snap_union.add_edges(s1);
+    snap_union.add_edges(s2);
+    snap_union.half();
+    louvain(snap_union, snap_union); 
+}
+
+void store_snapshot(const snapshot& s1) {
+    for (auto interval : s1.get_time()) {
+        string s = to_string(interval.first);
+        s += '-';
+        s += to_string(interval.second);
+        s += " ";
+        write_log(s);
+    }
+    write_log("\n");
 }
 
 void aynaud_guillaume(const tempGraph& G) {
@@ -88,12 +100,17 @@ void aynaud_guillaume(const tempGraph& G) {
         snapshot* snap_union = new snapshot;
         snapshot* s1 = snapshots[best_pair.first];
         snapshot* s2 = snapshots[best_pair.second];
-        construct_snapshot_union(snap_union, s1, s2);
+        construct_snapshot_union(*snap_union, *s1, *s2);
         snapshots.erase(snapshots.begin()+best_pair.first);
         snapshots.erase(snapshots.begin()+best_pair.second-1);
         delete s1;
         delete s2;
         snapshots.push_back(snap_union);
+        for (auto snap : snapshots) {
+            store_snapshot(*snap);
+            write_log("\n");
+        }
+        write_log("END OF SNAPSHOTS\n");
     }
     delete snapshots[0];
 }
